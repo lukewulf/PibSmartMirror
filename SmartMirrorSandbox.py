@@ -22,7 +22,7 @@ time_format = 12		#12 hour format (normal time)
 date_format = "%b %d, %Y" 	#However we want to make the date look
 news_country_code = 'us' 	#Searches Google News for US news
 
-weather_api_token = '8029c8320bb5b984c3236cf3f6f79153>'  	#darksky.net/dev secret key
+weather_api_token = '8029c8320bb5b984c3236cf3f6f79153'  	#darksky.net/dev secret key
 weather_lang = 'en' 		#darksky language setting to english
 weather_unit = 'us'		#Imperial units returned from darksky
 latitude = None			#Needed in darkSky API call, can set from ip address
@@ -64,8 +64,8 @@ class Weather(object):
 
 				lat = location_obj['latitude']
 				lon = location_obj['longitude']
-				print("Your latitude is: %f\n", lat)
-				print("Your longitude is: %f\n", lon)
+				print("Your latitude is: %f\n" % lat)
+				print("Your longitude is: %f\n" % lon)
 
 				location2 = "%s, %s" % (location_obj['city'], location_obj['region_code'])
 
@@ -74,9 +74,11 @@ class Weather(object):
 			else:
 				location2 = ""
 				weather_req_url = "https://api.darksky.net/forecast/%s/%s,%s?lang=%s&units=%s" % (weather_api_token, latitude, longitude, weather_lang, weather_unit)
-
-			req = requests.get(weather_req_url)
-			weather_obj = json.loads(req.text)
+			print("the weather url is: ")
+			print(weather_req_url)
+			print("\n")
+			r = requests.get(weather_req_url)
+			weather_obj = json.loads(r.text)
 
 			degree_sign = u'\N{DEGREE SIGN}'
 			temperature2 = "%s%s" % (str(int(weather_obj['currently']['temperature'])), degree_sign)
@@ -86,10 +88,10 @@ class Weather(object):
 			icon_id = weather_obj['currently']['icon']
 			icon2 = None
 
-			print("It is " + temperature2 + " outside\n")
-			print("The weather is " + currently2 + "\n")
-			print("In the future it will be " + forecast2 + "\n")
-			print("The icon id is: " + icon_id + "\n")
+			#print("It is %s outside\n" % temperature2)
+			print("The weather is %s \n" % currently2)
+			print("In the future it will be %s \n" % forecast2)
+			print("The icon id is: %s\n" % icon_id)
 		except Exception as e:
 			traceback.print_exc()
 			print "Error: %s. Cannot get weather" % e
