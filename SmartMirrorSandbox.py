@@ -29,7 +29,7 @@ latitude = None			#Needed in darkSky API call, can set from ip address
 longitude = None		#Needed in darkSky API call, can set from ip address
 
 news_api_token = '3e330242de994dd28074ba838a73a80b'
-news_provider = 'google-news'   #newsapi.org possible source: there's 50+ different news sources
+news_provider = 'espn'   #newsapi.org possible source: there's 50+ different news sources
 
 xlarge_text_size = 94		#These numbers are just a start, we'll play with them
 large_text_size = 48		#once we get the mirror
@@ -39,6 +39,33 @@ small_text_size = 18
 #@contextmanager
 #def setlocale(name)
 #This is for multithreading, which is basically running two programs at once.
+
+class Clock(object):
+	def __init__(self):
+		self.time1 = ''
+		self.day_of_week1 = ''
+		self.date1 = ''
+
+	def tick(self):
+		#with setlocale(ui_locale):
+			if time_format == 12:
+				time2 = time.strftime('%I:%M %p')	#HH:MM am/pm time string
+			else:
+				time2 = time.strftime('%H:%M')		#HH:MM 24hr time
+
+			day_of_week2 = time.strftime('%A')		#Name of the day of the week
+			date2 = time.strftime(date_format)		#MM/DD/YYYY date format
+
+			#updating time and date so its current
+			if time2 != self.time1:
+				self.time1 = time2
+			if day_of_week2 != self.day_of_week1:
+				self.day_of_week1 = day_of_week2
+			if date2 != self.date1:
+				self.date1 = date2
+			
+			dateDisplay = "It is %s on a %s.  The date is: %s\n" % (self.time1, self.day_of_week1, self.date1)
+			print(dateDisplay)
 
 class Weather(object):
 	def __init__(self):
@@ -87,11 +114,12 @@ class Weather(object):
 			temperature2 = "%s%s" % (str(int(weather_obj['currently']['temperature'])), degree_sign)
 			currently2 = weather_obj['currently']['summary']
 			forecast2 = weather_obj['hourly']['summary']
-		
+			temperature = "%s" % (str(int(weather_obj['currently']['temperature'])))		
 			icon_id = weather_obj['currently']['icon']
 			icon2 = None
 
 			#print("It is %s outside\n" % temperature2)
+			print("It is %s degrees outside\n" % temperature)
 			print("The weather is %s \n" % currently2)
 			print("In the future it will be %s \n" % forecast2)
 			print("The icon id is: %s\n" % icon_id)
@@ -129,3 +157,5 @@ myWeather = Weather()
 myWeather.get_weather()
 myNews = News()
 myNews.get_headlines()
+myClock = Clock()
+myClock.tick()
