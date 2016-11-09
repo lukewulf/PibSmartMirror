@@ -28,6 +28,9 @@ weather_unit = 'us'		#Imperial units returned from darksky
 latitude = None			#Needed in darkSky API call, can set from ip address
 longitude = None		#Needed in darkSky API call, can set from ip address
 
+news_api_token = '3e330242de994dd28074ba838a73a80b'
+news_provider = 'google-news'   #newsapi.org possible source: there's 50+ different news sources
+
 xlarge_text_size = 94		#These numbers are just a start, we'll play with them
 large_text_size = 48		#once we get the mirror
 medium_text_size = 28
@@ -96,6 +99,33 @@ class Weather(object):
 			traceback.print_exc()
 			print "Error: %s. Cannot get weather" % e
 
+class News(object):
+	def __init__(self):
+		self.title = 'News'
+		
+	
+	def get_headlines(self):
+		if news_api_token == None:
+			print("please enter a news api token from newsapi.org")
+			return
+		if news_provider == None:
+			news_source = 'google-news'
+			news_req_url = "https://newsapi.org/v1/articles?source=%s&apiKey=%s" % (news_source, news_api_token)
+		else:
+			news_req_url = "https://newsapi.org/v1/articles?source=%s&apiKey=%s" % (news_provider, news_api_token)
+		print("Your news req url is: " +news_req_url + "\n")
+		r = requests.get(news_req_url)
+		news_obj = json.loads(r.text)
+
+		headline1 = news_obj['articles'][0]['title']
+		headline2 = news_obj['articles'][1]['title']
+		headline3 = news_obj['articles'][2]['title']
+
+		print("%s\n" % headline1)
+		print("%s\n" % headline2)
+		print("%s\n" % headline3)
+	
 myWeather = Weather()
 myWeather.get_weather()
-
+myNews = News()
+myNews.get_headlines()
