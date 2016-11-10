@@ -1,4 +1,10 @@
-
+#pibSmartMirror.py
+# by: Luke Wulf, Pib tutor
+#
+# inspiration and parts of code taken from HackerHouse's Smart Mirror Project
+# this is the python script that fetches internet data on the weather and news
+# and displays it in a gui window.  This program will eventually be called by a 
+# bash script so that it runs at setup
 
 #Tkinter is the GUI of Python
 
@@ -28,7 +34,7 @@ weather_unit = 'us'		#Imperial units returned from darksky
 latitude = None			#Needed in darkSky API call, can set from ip address
 longitude = None		#Needed in darkSky API call, can set from ip address
 
-news_api_token = '3e330242de994dd28074ba838a73a80b'
+news_api_token = '3e330242de994dd28074ba838a73a80b'  		#newsapi.org api token
 news_provider = 'google-news'   #newsapi.org possible source: there's 50+ different news sources
 
 xlarge_text_size = 94		#These numbers are just a start, we'll play with them
@@ -47,22 +53,29 @@ def setlocale(name):
 		finally:
 			locale.setlocale(locale.LC_ALL, saved)
 
+#---------------------------Clock---------------------------------
 
 class Clock(Frame):
 	def __init__(self, parent, *args, **kwargs):
 		Frame.__init__(self, parent, bg='black')
 
+		#Creating the label for the actual time display, this will be in the top right corner
 		self.time1 = ''
 		self.timeLabel = Label(self, font=('Helvetica', large_text_size), fg="white", bg="black")
 		self.timeLabel.pack(side=TOP, anchor=E)
 
+		#Label that says the day of the week, it will be placed below the time display 
+		#since it was called after the time display
 		self.day_of_week1 = ''
 		self.dowLabel = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
 		self.dowLabel.pack(side=TOP, anchor=E)
 
+		#Label for the actual date that will be below the day of the week
 		self.date1 = ''
 		self.dateLabel = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
 		self.dateLabel.pack(side=TOP, anchor=E)
+
+		#Calling the method to display the clock
 		self.tick()
 
 	def tick(self):
@@ -88,9 +101,9 @@ class Clock(Frame):
 				self.date1 = date2
 				self.dateLabel.config(text=date2)
 			
-			#dateDisplay = "It is %s on a %s.  The date is: %s\n" % (self.time1, self.day_of_week1, self.date1)
-			#print(dateDisplay)
-			
+		 	
+			#after 200ms tick is called again to update the clock
+			#With this call we ensure that the clock is always accurate	
 			self.timeLabel.after(200, self.tick)
 
 #----------------------Weather Class--------------------------------
@@ -98,15 +111,26 @@ class Clock(Frame):
 class Weather(Frame):
 	def __init__(self, parent, *args, **kwargs):
 		Frame.__init__(self, parent, bg="black")
+
+		#Variables to hold the current weather data, if any are different from 
+		#the most recent call these variables are updated
 		self.temperature = ''
 		self.forecast = ''
 		self.location = ''
 		self.currently = ''
 		self.icon = ''
+
+		#GUI's are built in frames, which are basically squares inside other squares
+		#These squares are lined up in certain formats to display your data nicely
+		#Each Frame can contain labels, which are just blocks of text. In the label class
+		#you can specify the font, font color, font size, and highlight color
+
 		self.degreeFrame = Frame(self,bg="black")
 		self.degreeFrame.pack(side=TOP, anchor = W)
+
 		self.temperatureLabel = Label(self.degreeFrame, font=('Helvetica', xlarge_text_size), fg="white",  bg="black")
 		self.temperatureLabel.pack(side=LEFT, anchor = N)
+
 		self.iconLabel = Label(self.degreeFrame, bg="black")
 		self.iconLabel.pack(side=LEFT, anchor=N, padx = 20)
 
@@ -124,6 +148,7 @@ class Weather(Frame):
 	#Gets your ip if you did not enter it as a global variable
 	def get_ip(self):
 		try:
+			#jsonip.com returns a json object with your ip as a field
 			ip_url = "https://jsonip.com/"
 			req = requests.get(ip_url)
 			ip_json = json.loads(req.text)
@@ -142,8 +167,6 @@ class Weather(Frame):
 
 				lat = location_obj['latitude']
 				lon = location_obj['longitude']
-				#print("Your latitude is: %f\n" % lat)
-				#print("Your longitude is: %f\n" % lon)
 
 				location2 = "%s, %s" % (location_obj['city'], location_obj['region_code'])
 
@@ -152,22 +175,21 @@ class Weather(Frame):
 			else:
 				location2 = ""
 				weather_req_url = "https://api.darksky.net/forecast/%s/%s,%s?lang=%s&units=%s" % (weather_api_token, latitude, longitude, weather_lang, weather_unit)
-			#print("the weather url is: ")
-			#print(weather_req_url)
-			#print("\n")
 
 			#Grabbing the weather to your current location
 			r = requests.get(weather_req_url)
 			weather_obj = json.loads(r.text)
 
+			#weather_obj contains a dictionary of a bunch of data about your current weather
+			#You can use dictionary dereferencing to obtain this data
 			degree_sign = u'\N{DEGREE SIGN}'
 			temperature2 = "%s%s" % (str(int(weather_obj['currently']['temperature'])), degree_sign)
 			currently2 = weather_obj['currently']['summary']
 			forecast2 = weather_obj['hourly']['summary']
-			#temperature2 = "%s" % (str(int(weather_obj['currently']['temperature'])))		
 			icon_id = weather_obj['currently']['icon']
 			icon2 = None
 
+			#Updating the current weather variables to the most current data
 			if self.temperature != temperature2:
 				self.temperature = temperature2
 				self.temperatureLabel.config(text=temperature2)
@@ -188,15 +210,11 @@ class Weather(Frame):
 					self.location = location2
 					self.locationLabel.config(text=location2)
 
-			#print("It is %s outside\n" % temperature2)
-			#print("It is %s degrees outside\n" % temperature)
-			#print("The weather is %s \n" % currently2)
-			#print("In the future it will be %s \n" % forecast2)
-			#print("The icon id is: %s\n" % icon_id)
 		except Exception as e:
 			traceback.print_exc()
 			print "Error: %s. Cannot get weather" % e
 
+		#Calling for your new weather every 20 minutes
 		self.after(1200000, self.get_weather)
 
 #----------------------News Classes---------------------------------
@@ -208,7 +226,6 @@ class News(Frame):
 		Frame.__init__(self, parent, *args, **kwargs)
 		
 		self.config(bg='black')
-		
 		self.title = 'Today\'s Headlines'
 		self.newsLabel1 = Label(self, text=self.title, font=('Helvetica', medium_text_size), fg="white", bg="black")
 		self.newsLabel1.pack(side=TOP, anchor=W)
@@ -233,14 +250,17 @@ class News(Frame):
 			news_req_url = "https://newsapi.org/v1/articles?source=%s&apiKey=%s" % (news_source, news_api_token)
 		else:
 			news_req_url = "https://newsapi.org/v1/articles?source=%s&apiKey=%s" % (news_provider, news_api_token)
-		#print("Your news req url is: " +news_req_url + "\n")
 		r = requests.get(news_req_url)
 		news_obj = json.loads(r.text)
 
+		#News_obj contains a dictionary that has an array of articles, you can access these articles
+		#to obtain headlines, authors, etc.  We're getting headlines
 		headline1 = news_obj['articles'][0]['title']
 		headline2 = news_obj['articles'][1]['title']
 		headline3 = news_obj['articles'][2]['title']
 
+
+		#Putting the actual headline texts into labels for the GUI
 		headlineGUI1 = NewsHeadline(self.headlinesContainer, headline1)
 		headlineGUI1.pack(side = TOP, anchor = W)
 
@@ -250,11 +270,8 @@ class News(Frame):
 		headlineGUI3 = NewsHeadline(self.headlinesContainer, headline3)
 		headlineGUI3.pack(side = TOP, anchor = W)
 
+		#Every 10 minutes we get headlines again
 		self.after(600000, self.get_headlines)
-
-		#print("%s\n" % headline1)
-		#print("%s\n" % headline2)
-		#print("%s\n" % headline3)
 
 class NewsHeadline(Frame):
 	def __init__(self, parent, title=""):
@@ -268,6 +285,9 @@ class NewsHeadline(Frame):
 #-------------------Holder for all the GUI elements --------------------------
 class DisplayWindow:
 	def __init__(self):
+
+		#Creates the largest frames for the GUI, this is where all the smaller frames from
+		#the weather, clock and news go into.  Its a frame within a frame
 		self.tk = Tk()
 		self.tk.configure(background = 'black')
 		self.topFrame = Frame(self.tk, background = 'black')
@@ -275,6 +295,8 @@ class DisplayWindow:
 		self.topFrame.pack(side = TOP, fill = BOTH, expand = YES)
 		self.bottomFrame.pack(side = BOTTOM, fill = BOTH, expand = YES)
 		self.state = False
+
+		#Makes it easy to go into fullscreen with the program
 		self.tk.bind("<Return>", self.toggle_fullscreen)
 		self.tk.bind("<Escape>", self.end_fullscreen)
 
@@ -304,10 +326,3 @@ if __name__ == '__main__':
 	w = DisplayWindow()
 	w.tk.mainloop()
 
-
-#myWeather = Weather()
-#myWeather.get_weather()
-#myNews = News()
-#myNews.get_headlines()
-#myClock = Clock()
-#myClock.tick()
