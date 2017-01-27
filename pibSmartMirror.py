@@ -17,7 +17,10 @@ import json
 import traceback
 #import feedparser
 
-from PIL import Image, ImageTk
+import PIL 
+from PIL import Image
+from PIL import ImageTk 
+
 from contextlib import contextmanager
 
 LOCALE_LOCK = threading.Lock()
